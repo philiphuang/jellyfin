@@ -1,0 +1,39 @@
+version: '2'
+
+services:
+
+  jellyfin:
+    image: linuxserver/jellyfin
+    ports:
+      - 8096:8096 #Http界面.
+      - 7359:7359/udp #本地网络的客户端发现
+      - 1900:1900/udp #DNLA服务发现
+    volumes:
+      - ./data/jellyfin/config:/config
+      - ./data/jellyfin/tvseries:/data/tvshows
+      - ./data/jellyfin/movies:/data/movies
+    environment:
+      - TZ=Asia/Shanghai
+      - PUID=1000
+      - PGID=1000
+    devices:
+      - /dev/dri:/dev/dri #使用Interl GPU做硬解
+    restart: always
+    logging:
+      # limit logs retained on host to 25MB
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
+    networks:
+      default:
+        ipv4_address: ${IP_RANGE}.2
+
+networks:
+  default:
+      driver: bridge
+      ipam:
+        config:
+          - subnet: ${IP_RANGE}.0/24
+            ip_range: ${IP_RANGE}.128/25
+            gateway: ${IP_RANGE}.1
